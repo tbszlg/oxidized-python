@@ -1,0 +1,136 @@
+#+title: Readme
+
+* Instructions
+These are my notes on the procedure to set up a python extension module usable for Python and Rust.
+
+The core tools used to make this work are
+- [[https://github.com/PyO3/pyo3][PyO3]] :: Rust bindings for Python
+- [[https://github.com/PyO3/maturin][maturin]] :: Building tool for rust binaries as python packages
+
+** Setup
+*** Virtual environment
+Everything needs to happen through an existing virtual environment. After
+creating this /venv/, make sure that everything you do is done with it activated.
+After creating the virtual environment we install the /maturin/ package using pip.
+#+begin_src sh :results scalar :session pyo3 :exports code
+# Specify name of the venv to use
+venv_name="venv"
+
+# Create a new python venv only if it does not already exist
+if [ ! -d "$venv_name" ]
+then
+  python -m venv "$venv_name"
+else
+  echo "Virtual environment $venv_name already exists in $(pwd)"
+fi
+
+# Activate the newly created venv and install the `maturin` package
+export VIRTUAL_ENV_DISABLE_PROMPT=1
+. venv/bin/activate
+python -m pip install --upgrade pip
+pip install maturin
+#+end_src
+
+#+RESULTS:
+: org_babel_sh_prompt>
+: Virtual environment venv already exists in /Users/tbszlg/scm/rust/oxidized_python
+: org_babel_sh_prompt>
+: Requirement already satisfied: pip in ./venv/lib/python3.9/site-packages (23.0.1)
+: Requirement already satisfied: maturin in ./venv/lib/python3.9/site-packages (0.14.17)
+: Requirement already satisfied: tomli>=1.1.0 in ./venv/lib/python3.9/site-packages (from maturin) (2.0.1)
+
+*** Project structure
+Following the [[https://github.com/PyO3/pyo3#using-rust-from-python][PyO3 examples]], we can simply initialize our project in the current
+directory. Running ~maturin init~ is everything we need to do. This will set us up
+with all the necessary files and initial configuration.
+
+When running the initialization script make sure to select ~pyo3~ as the kind of
+bindings that we are going to use in this project. If you don't specify the type
+of bindings using the ~--bindings~ flag maturin will ask you using an interactive
+prompt.
+#+begin_src shell :session pyo3 :exports both
+maturin init --bindings pyo3
+#+end_src
+
+#+RESULTS:
+: ✨ Done! Initialized project /Users/tbszlg/scm/rust/oxidized_python
+
+After this initialization our current directory will be initialized with this
+project structure:
+#+begin_src shell :session pyo3 :results scalar :exports results
+tree --noreport -I venv
+#+end_src
+
+#+RESULTS:
+: .
+: ├── Cargo.toml
+: ├── README.org
+: ├── pyproject.toml
+: └── src
+:     └── lib.rs
+
+As a nice bonus /maturin/ automatically creates a github CI workflow in
+~.github/workflows/CI.yml~ that will trigger the build of Python wheels for a
+bunch of target platforms and upload them as artifacts whenever a new tag is
+pushed to branches ~main~ or ~master~.
+
+*** PyO3 function and module definitions
+The automatically created ~src/lib.rs~ file already holds some example code for
+how a Python binding to Rust code looks from the Rust side.
+
+To create a function in Rust that should be usable through a Python interface we
+need to add the ~#[pyfunction]~ macro to the function. The automatically
+created example code already shows this for the ~sum_as_string~ function.
+
+#+transclude: [[file:src/lib.rs]] :lines 3-7 :src rust
+
+To add a function to a module importable by Python we use the similar
+~#[pymodule]~ macro.
+
+#+transclude: [[file:src/lib.rs]] :lines 9-14 :src rust
+
+*** Using Rust implementations in Python
+The easiest way to make the Rust implementations available to us in Python is by
+using the ~maturin develop~ command. Running it will build the package and install
+it in the existing virtual environment we created earlier.
+
+The ~--quiet~ flag I'm using will disable all of the cargo build outputs. There is
+no harm in removing that flag.
+
+#+begin_src sh :session pyo3 :results scalar :exports both
+maturin develop --quiet
+#+end_src
+
+#+RESULTS:
+: 🔗 Found pyo3 bindings
+: 🐍 Found CPython 3.9 at /Users/tbszlg/scm/rust/oxidized_python/venv/bin/python
+: 📡 Using build options features from pyproject.toml
+: 💻 Using `MACOSX_DEPLOYMENT_TARGET=11.0` for aarch64-apple-darwin by default
+: 📦 Built wheel for CPython 3.9 to /var/folders/w1/hjpns4zx3b75rrv40rpc40p80000gn/T/.tmpZ088ON/oxidized_python-0.1.0-cp39-cp39-macosx_11_0_arm64.whl
+: 🛠 Installed oxidized_python-0.1.0
+
+The outputs of this command tell us that maturin used ~pyo3~ bindings and ~CPython
+3.9~ to build our project. It also built the wheel specifically for the target
+~aarch64-apple-darwin~, which is an important detail as each target platform
+requires its own build. Finally we see that it built a wheel file
+~oxidized_python-0.1.0-cp39-cp39-macosx_11_0_arm64.whl~ and installed it into our
+current python venv.
+
+To test things we can run a tiny python snippet to validate that the module and
+function implemented in Rust are now available to us in Python. We should be
+able to import the ~oxidized_python~ module and call the ~sum_as_string~ function
+defined there.
+
+#+begin_src python :session pyo3 :results output :exports both
+import oxidized_python
+
+
+res = oxidized_python.sum_as_string(3, 7)
+print(f"The output of `sum_as_string` is {res} and of type {type(res)}")
+#+end_src
+
+#+RESULTS:
+: The output of `sum_as_string` is 10 and of type <class 'str'>
+
+Perfect! Our Python interpreter was able to import the functions defined in our
+Rust code, call them and work with the results as expected!
