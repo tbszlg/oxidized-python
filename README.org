@@ -82,12 +82,25 @@ To create a function in Rust that should be usable through a Python interface we
 need to add the ~#[pyfunction]~ macro to the function. The automatically
 created example code already shows this for the ~sum_as_string~ function.
 
-#+transclude: [[file:src/lib.rs]] :lines 3-7 :src rust
+#+begin_src rust
+/// Formats the sum of two numbers as string.
+#[pyfunction]
+fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
+    Ok((a + b).to_string())
+}
+#+end_src
 
 To add a function to a module importable by Python we use the similar
 ~#[pymodule]~ macro.
 
-#+transclude: [[file:src/lib.rs]] :lines 9-14 :src rust
+#+begin_src rust
+/// A Python module implemented in Rust.
+#[pymodule]
+fn oxidized_python(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
+    Ok(())
+}
+#+end_src
 
 *** Using Rust implementations in Python
 The easiest way to make the Rust implementations available to us in Python is by
