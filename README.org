@@ -164,3 +164,7 @@ Adding the ~"lib"~ specification below is enough to do so.
 name = "oxidized_python"
 crate-type = ["cdylib", "lib"]
 #+end_src
+** Face recognition package
+*** Preparations
+- Download model files from https://github.com/deepinsight/insightface/tree/master/python-package#model-zoo
+- Unzip into ~assets/models/~ directory (onnx files)
