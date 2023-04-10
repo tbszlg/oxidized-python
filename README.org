@@ -147,3 +147,20 @@ print(f"The output of `sum_as_string` is {res} and of type {type(res)}")
 
 Perfect! Our Python interpreter was able to import the functions defined in our
 Rust code, call them and work with the results as expected!
+
+*** Dual Rust & Python library
+The way we set up the project until now allows us to create a Python library
+from Rust code. But what if we would also want to make the library available to
+other Rust implementations?
+
+In that case we simply add the specification to the ~Cargo.toml~ file that
+instructs the build process to additionally compile the package into a Rust
+library.
+
+Adding the ~"lib"~ specification below is enough to do so.
+
+#+begin_src toml
+[lib]
+name = "oxidized_python"
+crate-type = ["cdylib", "lib"]
+#+end_src
