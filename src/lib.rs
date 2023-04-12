@@ -1,37 +1,40 @@
-use image::open;
+use image::{RgbImage, DynamicImage};
+use onnxruntime::ndarray::Array1;
 use pyo3::prelude::*;
 
 mod face_recognition;
 
-const IMAGE_PATH_TOM: &str = "assets/tom.png";
-const IMAGE_PATH_HANKS: &str = "assets/hanks.jpg";
-
-/// Formats the sum of two numbers as string.
-#[pyfunction]
-fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
-    Ok((a + b).to_string())
-}
 
 #[pyfunction]
-fn get_face_embeddings() -> PyResult<f32> {
-    let env = face_recognition::initialize_environment().unwrap();
-    let mut session = face_recognition::initialize_session(&env).unwrap();
-    let image = open(IMAGE_PATH_TOM).unwrap();
-    let input = face_recognition::preprocess_input(image, &session).unwrap();
-    let output_1 = face_recognition::run_inference(input, &mut session).unwrap();
+fn embedding(image: &PyAny) -> eyre::Result<Vec<f32>> {
+    let env = face_recognition::initialize_environment()?;
+    let mut session = face_recognition::initialize_session(&env)?;
 
-    let image = open(IMAGE_PATH_HANKS).unwrap();
-    let input = face_recognition::preprocess_input(image, &session).unwrap();
-    let output_2 = face_recognition::run_inference(input, &mut session).unwrap();
-
-    let similarity = face_recognition::calculate_similarity(&output_1, &output_2).unwrap();
-    Ok(similarity)
+    let (h, w, _): (u32, u32, u32) = image.getattr("shape")?.extract()?;
+    let input_img = DynamicImage::ImageRgb8(
+        RgbImage::from_vec(
+            w, h, image.call_method0("flatten")?.extract()?
+        ).expect("Failed to convert to RgbImage")
+    );
+    let input_img = face_recognition::preprocess_input(input_img, &session)?;
+    let embedding = face_recognition::run_inference(input_img, &mut session)?;
+    Ok(embedding.to_vec())
 }
+
+
+#[pyfunction]
+fn similarity(embedding1: Vec<f32>, embedding2: Vec<f32>) -> eyre::Result<f32> {
+    face_recognition::calculate_similarity(
+        &Array1::<f32>::from_shape_vec(512, embedding1)?,
+        &Array1::<f32>::from_shape_vec(512, embedding2)?,
+    )
+}
+
 
 /// A Python module implemented in Rust.
 #[pymodule]
 fn oxidized_python(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
-    m.add_function(wrap_pyfunction!(get_face_embeddings, m)?)?;
+    m.add_function(wrap_pyfunction!(embedding, m)?)?;
+    m.add_function(wrap_pyfunction!(similarity, m)?)?;
     Ok(())
 }

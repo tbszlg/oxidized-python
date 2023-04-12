@@ -36,8 +36,6 @@ pub fn initialize_session(env: &Environment) -> Result<Session> {
 /// normalize pixel values to [-1, 1]
 pub fn preprocess_input(image: DynamicImage, session: &Session) -> Result<Vec<Array4<f32>>> {
     let input_dimensions = &session.inputs[0].dimensions;
-    let output_dimensions = &session.outputs[0].dimensions;
-
     let image_resized = image
         .resize_exact(input_dimensions[2].unwrap(), input_dimensions[3].unwrap(), Nearest)
         .to_rgb8();

@@ -168,3 +168,33 @@ crate-type = ["cdylib", "lib"]
 *** Preparations
 - Download model files from https://github.com/deepinsight/insightface/tree/master/python-package#model-zoo
 - Unzip into ~assets/models/~ directory (onnx files)
+
+*** Testing Python integration
+This small snippet is enough to run the face-recognition implementation in Rust
+via the Python interpreter.
+#+begin_src sh :session pyo3 :exports none
+export VIRTUAL_ENV_DISABLE_PROMPT=1
+. venv/bin/activate
+#+end_src
+
+#+RESULTS:
+
+#+begin_src python :results output :exports both
+import cv2
+import oxidized_python
+
+
+# similarity = oxidized_python.get_face_embeddings()
+# print(similarity)
+
+tom = cv2.imread("assets/tom.png", cv2.IMREAD_COLOR)
+hanks = cv2.imread("assets/hanks.jpg", cv2.IMREAD_COLOR)
+
+embedding_tom = oxidized_python.embedding(tom)
+embedding_hanks = oxidized_python.embedding(hanks)
+similarity = oxidized_python.similarity(embedding_tom, embedding_hanks)
+print(similarity)
+#+end_src
+
+#+RESULTS:
+: 0.7719931602478027
