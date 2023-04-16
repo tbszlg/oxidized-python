@@ -1,5 +1,5 @@
 use eyre::Result;
-use image::DynamicImage;
+use image::{DynamicImage, GenericImageView};
 use std::env;
 use std::path::Path;
 
@@ -17,17 +17,12 @@ fn main() -> Result<()> {
     let image_path2 = &args[2];
     let image1 = load_image(image_path1)?;
     let image2 = load_image(image_path2)?;
+    println!("{:?}", image1.get_pixel(0, 0));
 
     let agent_environment = AgentEnvironment::new()?;
     let mut agent = agent_environment.create_agent()?;
 
-    let input1 = agent.preprocess_input(image1)?;
-    let input2 = agent.preprocess_input(image2)?;
-
-    let embedding1 = agent.run_inference(input1)?; // Assuming this method exists
-    let embedding2 = agent.run_inference(input2)?; // Assuming this method exists
-
-    let similarity = Agent::calculate_similarity(&embedding1, &embedding2)?;
+    let similarity = agent.get_face_similarity(image1, image2)?;
     println!("Similarity: {similarity}");
 
     Ok(())

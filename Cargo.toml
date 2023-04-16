@@ -6,12 +6,11 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
 name = "oxidized_python"
-# crate-type = ["cdylib", "lib"]
-crate-type = ["lib"]
+crate-type = ["cdylib", "lib"]
 
-[[bin]]
-name = "oxidized_python"
-path = "src/main.rs"
+# [[bin]]
+# name = "oxidized_python"
+# path = "src/main.rs"
 
 [dependencies]
 eyre = "0.6.8"

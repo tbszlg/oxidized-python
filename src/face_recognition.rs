@@ -11,10 +11,17 @@ use std::sync::Arc;
 
 const MODEL_PATH: &str = "assets/models/w600k_mbf.onnx";
 
+/// Onnx runtime environment
+///
+/// This struct is used to initialize the onnxruntime inference environment
+/// and create inference agents.
 pub struct AgentEnvironment {
     environment: Environment,
 }
 
+/// Onnx runtime inference agent
+///
+/// This struct is used to run inference on a single thread.
 pub struct Agent {
     session: Session<'static>,
 }
@@ -25,6 +32,16 @@ impl AgentEnvironment {
         Ok(Self { environment })
     }
 
+    /// Initialize the onnxruntime inference environment
+    fn initialize_environment() -> Result<Environment> {
+        let env = Environment::builder()
+            .with_name("onnxruntime-rs")
+            .with_log_level(onnxruntime::LoggingLevel::Verbose)
+            .build()?;
+        Ok(env)
+    }
+
+    /// Create a new inference agent
     pub fn create_agent(&self) -> Result<Agent> {
         let environment = Arc::new(
             self.environment.clone()
@@ -35,15 +52,6 @@ impl AgentEnvironment {
             }
         )?;
         Ok(Agent { session })
-    }
-
-    /// Initialize the onnxruntime inference environment
-    fn initialize_environment() -> Result<Environment> {
-        let env = Environment::builder()
-            .with_name("onnxruntime-rs")
-            .with_log_level(onnxruntime::LoggingLevel::Verbose)
-            .build()?;
-        Ok(env)
     }
 }
 
@@ -79,6 +87,7 @@ impl Agent {
         Ok(input_tensor)
     }
 
+    /// Run inference on input tensor
     pub fn run_inference(&mut self, input_tensor: Vec<Array4<f32>>) -> Result<Array1<f32>> {
         let output_tensor = self.session
             .run(input_tensor)?[0]
@@ -90,8 +99,18 @@ impl Agent {
         Ok(output)
     }
 
+    /// Calculate cosine similarity between two embeddings
     pub fn calculate_similarity(embedding1: &Array1<f32>, embedding2: &Array1<f32>) -> Result<f32> {
         let similarity = embedding1.dot(embedding2);
+        Ok(similarity)
+    }
+
+    pub fn get_face_similarity(&mut self, image1: DynamicImage, image2: DynamicImage) -> Result<f32> {
+        let embedding1 = self.run_inference(self.preprocess_input(image1)?)?;
+        let embedding2 = self.run_inference(self.preprocess_input(image2)?)?;
+        println!("{:?}", embedding1.get(123));
+
+        let similarity = Self::calculate_similarity(&embedding1, &embedding2)?;
         Ok(similarity)
     }
 

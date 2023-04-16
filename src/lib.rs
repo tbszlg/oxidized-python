@@ -1,4 +1,5 @@
-use image::{DynamicImage, RgbImage};
+use image::{DynamicImage, RgbImage, GenericImageView};
+use numpy::PyArray3;
 use onnxruntime::ndarray::Array1;
 use pyo3::prelude::*;
 
@@ -13,13 +14,13 @@ struct PyAgentEnvironment {
 #[pymethods]
 impl PyAgentEnvironment {
     #[new]
-    fn new() -> PyResult<Self> {
-        let inner = AgentEnvironment::new().map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))?;
+    fn new() -> eyre::Result<Self> {
+        let inner = AgentEnvironment::new()?;
         Ok(Self { inner })
     }
 
-    fn create_agent(&self) -> PyResult<PyAgent> {
-        let agent = self.inner.create_agent().map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))?;
+    fn create_agent(&self) -> eyre::Result<PyAgent> {
+        let agent = self.inner.create_agent()?;
         Ok(PyAgent { inner: agent })
     }
 }
@@ -53,6 +54,24 @@ impl PyAgent {
             &Array1::from_shape_vec(512, embedding2)?,
         )
     }
+
+    fn get_similarity(&mut self, image1: Vec<Vec<Vec<u8>>>, image2: Vec<Vec<Vec<u8>>>) -> eyre::Result<f32> {
+        let input_image1 = img_from_vec(image1);
+        let input_image2 = img_from_vec(image2);
+        // Print first pixel value
+        println!("{:?}", input_image1.get_pixel(0, 0));
+        self.inner.get_face_similarity(input_image1, input_image2)
+    }
+}
+
+fn img_from_vec(image: Vec<Vec<Vec<u8>>>) -> DynamicImage {
+    let h = image.len() as u32;
+    let w = image[0].len() as u32;
+    DynamicImage::ImageRgb8(
+        RgbImage::from_vec(
+            w, h, image.into_iter().flatten().flatten().collect()
+        ).expect("Failed to convert image to RgbImage")
+    )
 }
 
 #[pyfunction]

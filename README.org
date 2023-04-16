@@ -181,22 +181,47 @@ export VIRTUAL_ENV_DISABLE_PROMPT=1
 
 #+begin_src python :session pyo3 :results output :exports both
 import cv2
+import numpy as np
+
 import oxidized_python
 
 
-tom = cv2.imread("assets/tom.png", cv2.IMREAD_COLOR)
-hanks = cv2.imread("assets/hanks.jpg", cv2.IMREAD_COLOR)
+tom = cv2.imread("assets/tom.png", cv2.IMREAD_COLOR).astype(np.uint8)
+hanks = cv2.imread("assets/hanks.jpg", cv2.IMREAD_COLOR).astype(np.uint8)
 
-agent = oxidized_python.PyAgent()
-embedding_tom = agent.get_embedding(tom)
-embedding_hanks = agent.get_embedding(hanks)
-similarity = agent.similarity(embedding_tom, embedding_hanks)
+environment = oxidized_python.PyAgentEnvironment()
+agent = environment.create_agent()
 
-# embedding_tom = oxidized_python.embedding(tom)
-# embedding_hanks = oxidized_python.embedding(hanks)
-# similarity = oxidized_python.similarity(embedding_tom, embedding_hanks)
+similarity = agent.get_similarity(tom.tolist(), hanks.tolist())
+
 print(similarity)
-print(type(similarity))
 #+end_src
 
 #+RESULTS:
+: Rgba([18, 18, 18, 255])
+
+*** Testing Rust usage
+The developed library can also be used by Rust. For this purpose I implemented a
+binary in ~src/main.rs~ that instantiated a face-recognition agent and computes
+the similarity between the two images.
+
+To compile the binary it is enough to run the regular ~cargo build~ command:
+#+begin_src sh :session pyo3 :results raw :exports code
+cargo build --bin oxidized_python
+#+end_src
+
+#+RESULTS:
+Finished dev [unoptimized + debuginfo] target(s) in 0.10s
+
+The binary is implemented such that it accepts two command line arguments - the
+path to two images to calculate face similarity for.
+#+begin_src sh :session pyo3 :results raw
+./target/debug/oxidized_python ./assets/tom.png ./assets/hanks.jpg
+#+end_src
+
+#+RESULTS:
+Rgba([18, 18, 18, 255])
+Some(0.040907674)
+Similarity: 0.75250286
+Rgba([18, 18, 18, 255])
+Similarity: 0.75250286
