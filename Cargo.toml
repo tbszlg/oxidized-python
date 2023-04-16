@@ -9,8 +9,13 @@ name = "oxidized_python"
 # crate-type = ["cdylib", "lib"]
 crate-type = ["lib"]
 
+[[bin]]
+name = "oxidized_python"
+path = "src/main.rs"
+
 [dependencies]
 eyre = "0.6.8"
 image = "0.24.6"
+numpy = "0.18.0"
 onnxruntime = "0.0.14"
 pyo3 = { version = "0.18.1", features = ["eyre"] }
