@@ -108,7 +108,6 @@ impl Agent {
     pub fn get_face_similarity(&mut self, image1: DynamicImage, image2: DynamicImage) -> Result<f32> {
         let embedding1 = self.run_inference(self.preprocess_input(image1)?)?;
         let embedding2 = self.run_inference(self.preprocess_input(image2)?)?;
-        println!("{:?}", embedding1.get(123));
 
         let similarity = Self::calculate_similarity(&embedding1, &embedding2)?;
         Ok(similarity)

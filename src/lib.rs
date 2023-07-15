@@ -59,7 +59,6 @@ impl PyAgent {
         let input_image1 = img_from_vec(image1);
         let input_image2 = img_from_vec(image2);
         // Print first pixel value
-        println!("{:?}", input_image1.get_pixel(0, 0));
         self.inner.get_face_similarity(input_image1, input_image2)
     }
 }
