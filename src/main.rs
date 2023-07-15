@@ -1,10 +1,10 @@
 use eyre::Result;
-use image::{DynamicImage, GenericImageView};
+use image::DynamicImage;
 use std::env;
 use std::path::Path;
 
 mod face_recognition;
-use face_recognition::{Agent, AgentEnvironment};
+use face_recognition::AgentEnvironment;
 
 fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();

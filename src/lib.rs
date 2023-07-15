@@ -1,5 +1,4 @@
-use image::{DynamicImage, RgbImage, GenericImageView};
-use numpy::PyArray3;
+use image::{DynamicImage, RgbImage};
 use onnxruntime::ndarray::Array1;
 use pyo3::prelude::*;
 
