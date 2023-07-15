@@ -1,17 +1,22 @@
-#+title: Readme
+#+title: 🦀 Oxidized Python 🐍
 
-* Instructions
+
+This repo is a small exploratory project for me to learn how Rust code can be used as a Python package with minimal overhead.
+
+
+* Setup instructions
 These are my notes on the procedure to set up a python extension module usable for Python and Rust.
 
 The core tools used to make this work are
 - [[https://github.com/PyO3/pyo3][PyO3]] :: Rust bindings for Python
 - [[https://github.com/PyO3/maturin][maturin]] :: Building tool for rust binaries as python packages
 
+
 ** Setup
+
+
 *** Virtual environment
-Everything needs to happen through an existing virtual environment. After
-creating this /venv/, make sure that everything you do is done with it activated.
-After creating the virtual environment we install the /maturin/ package using pip.
+Everything needs to happen through an existing virtual environment. After creating this /venv/, make sure that everything you do is done with it activated. After creating the virtual environment we install the /maturin/ package using pip.
 #+begin_src sh :results scalar :session pyo3 :exports code
 # Specify name of the venv to use
 venv_name="venv"
@@ -32,22 +37,29 @@ pip install maturin
 #+end_src
 
 #+RESULTS:
-: org_babel_sh_prompt>
-: Virtual environment venv already exists in /Users/tbszlg/scm/rust/oxidized_python
-: org_babel_sh_prompt>
-: Requirement already satisfied: pip in ./venv/lib/python3.9/site-packages (23.0.1)
-: Requirement already satisfied: maturin in ./venv/lib/python3.9/site-packages (0.14.17)
-: Requirement already satisfied: tomli>=1.1.0 in ./venv/lib/python3.9/site-packages (from maturin) (2.0.1)
+#+begin_example
+org_babel_sh_prompt> org_babel_sh_prompt> org_babel_sh_prompt> Virtual environment venv already exists in /Users/tbszlg/scm/rust/oxidized_python
+org_babel_sh_prompt>
+Requirement already satisfied: pip in ./venv/lib/python3.8/site-packages (23.0.1)
+Collecting pip
+  Downloading pip-23.2-py3-none-any.whl (2.1 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB 4.7 MB/s eta 0:00:00
+
+Installing collected packages: pip
+  Attempting uninstall: pip
+    Found existing installation: pip 23.0.1
+    Uninstalling pip-23.0.1:
+      Successfully uninstalled pip-23.0.1
+Successfully installed pip-23.2
+Requirement already satisfied: maturin in ./venv/lib/python3.8/site-packages (0.14.17)
+Requirement already satisfied: tomli>=1.1.0 in ./venv/lib/python3.8/site-packages (from maturin) (2.0.1)
+#+end_example
+
 
 *** Project structure
-Following the [[https://github.com/PyO3/pyo3#using-rust-from-python][PyO3 examples]], we can simply initialize our project in the current
-directory. Running ~maturin init~ is everything we need to do. This will set us up
-with all the necessary files and initial configuration.
+Following the [[https://github.com/PyO3/pyo3#using-rust-from-python][PyO3 examples]], we can simply initialize our project in the current directory. Running ~maturin init~ is everything we need to do. This will set us up with all the necessary files and initial configuration.
 
-When running the initialization script make sure to select ~pyo3~ as the kind of
-bindings that we are going to use in this project. If you don't specify the type
-of bindings using the ~--bindings~ flag maturin will ask you using an interactive
-prompt.
+When running the initialization script make sure to select ~pyo3~ as the kind of bindings that we are going to use in this project. If you don't specify the type of bindings using the ~--bindings~ flag maturin will ask you using an interactive prompt.
 #+begin_src shell :session pyo3 :exports both
 maturin init --bindings pyo3
 #+end_src
@@ -55,8 +67,7 @@ maturin init --bindings pyo3
 #+RESULTS:
 : ✨ Done! Initialized project /Users/tbszlg/scm/rust/oxidized_python
 
-After this initialization our current directory will be initialized with this
-project structure:
+After this initialization our current directory will be initialized with this project structure:
 #+begin_src shell :session pyo3 :results scalar :exports results
 tree --noreport -I venv
 #+end_src
@@ -69,18 +80,13 @@ tree --noreport -I venv
 : └── src
 :     └── lib.rs
 
-As a nice bonus /maturin/ automatically creates a github CI workflow in
-~.github/workflows/CI.yml~ that will trigger the build of Python wheels for a
-bunch of target platforms and upload them as artifacts whenever a new tag is
-pushed to branches ~main~ or ~master~.
+As a nice bonus /maturin/ automatically creates a github CI workflow in ~.github/workflows/CI.yml~ that will trigger the build of Python wheels for a bunch of target platforms and upload them as artifacts whenever a new tag is pushed to branches ~main~ or ~master~.
+
 
 *** PyO3 function and module definitions
-The automatically created ~src/lib.rs~ file already holds some example code for
-how a Python binding to Rust code looks from the Rust side.
+The automatically created ~src/lib.rs~ file already holds some example code for how a Python binding to Rust code looks from the Rust side.
 
-To create a function in Rust that should be usable through a Python interface we
-need to add the ~#[pyfunction]~ macro to the function. The automatically
-created example code already shows this for the ~sum_as_string~ function.
+To create a function in Rust that should be usable through a Python interface we need to add the ~#[pyfunction]~ macro to the function. The automatically created example code already shows this for the ~sum_as_string~ function.
 
 #+begin_src rust
 /// Formats the sum of two numbers as string.
@@ -90,8 +96,7 @@ fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
 }
 #+end_src
 
-To add a function to a module importable by Python we use the similar
-~#[pymodule]~ macro.
+To add a function to a module importable by Python we use the similar ~#[pymodule]~ macro.
 
 #+begin_src rust
 /// A Python module implemented in Rust.
@@ -102,13 +107,11 @@ fn oxidized_python(_py: Python, m: &PyModule) -> PyResult<()> {
 }
 #+end_src
 
-*** Using Rust implementations in Python
-The easiest way to make the Rust implementations available to us in Python is by
-using the ~maturin develop~ command. Running it will build the package and install
-it in the existing virtual environment we created earlier.
 
-The ~--quiet~ flag I'm using will disable all of the cargo build outputs. There is
-no harm in removing that flag.
+*** Using Rust implementations in Python
+The easiest way to make the Rust implementations available to us in Python is by using the ~maturin develop~ command. Running it will build the package and install it in the existing virtual environment we created earlier.
+
+The ~--quiet~ flag I'm using will disable all of the cargo build outputs. There is no harm in removing it.
 
 #+begin_src sh :session pyo3 :results scalar :exports both
 maturin develop --quiet
@@ -122,17 +125,9 @@ maturin develop --quiet
 : 📦 Built wheel for CPython 3.9 to /var/folders/w1/hjpns4zx3b75rrv40rpc40p80000gn/T/.tmpZ088ON/oxidized_python-0.1.0-cp39-cp39-macosx_11_0_arm64.whl
 : 🛠 Installed oxidized_python-0.1.0
 
-The outputs of this command tell us that maturin used ~pyo3~ bindings and ~CPython
-3.9~ to build our project. It also built the wheel specifically for the target
-~aarch64-apple-darwin~, which is an important detail as each target platform
-requires its own build. Finally we see that it built a wheel file
-~oxidized_python-0.1.0-cp39-cp39-macosx_11_0_arm64.whl~ and installed it into our
-current python venv.
+The outputs of this command tell us that maturin used ~pyo3~ bindings and ~CPython 3.9~ to build our project. It also built the wheel specifically for the target ~aarch64-apple-darwin~, which is an important detail as each target platform requires its own build. Finally we see that it built a wheel file ~oxidized_python-0.1.0-cp39-cp39-macosx_11_0_arm64.whl~ and installed it into our current python venv.
 
-To test things we can run a tiny python snippet to validate that the module and
-function implemented in Rust are now available to us in Python. We should be
-able to import the ~oxidized_python~ module and call the ~sum_as_string~ function
-defined there.
+To test things we can run a tiny python snippet to validate that the module and function implemented in Rust are now available to us in Python. We should be able to import the ~oxidized_python~ module and call the ~sum_as_string~ function defined there.
 
 #+begin_src python :session pyo3 :results output :exports both
 import oxidized_python
@@ -143,19 +138,14 @@ print(f"The output of `sum_as_string` is {res} and of type {type(res)}")
 #+end_src
 
 #+RESULTS:
-: The output of `sum_as_string` is 10 and of type <class 'str'>
 
-Perfect! Our Python interpreter was able to import the functions defined in our
-Rust code, call them and work with the results as expected!
+Perfect! Our Python interpreter was able to import the functions defined in our Rust code, call them and work with the results as expected!
+
 
 *** Dual Rust & Python library
-The way we set up the project until now allows us to create a Python library
-from Rust code. But what if we would also want to make the library available to
-other Rust implementations?
+The way we set up the project until now allows us to create a Python library from Rust code. But what if we would also want to make the library available to other Rust implementations?
 
-In that case we simply add the specification to the ~Cargo.toml~ file that
-instructs the build process to additionally compile the package into a Rust
-library.
+In that case we simply add the specification to the ~Cargo.toml~ file that instructs the build process to additionally compile the package into a Rust library.
 
 Adding the ~"lib"~ specification below is enough to do so.
 
@@ -164,20 +154,29 @@ Adding the ~"lib"~ specification below is enough to do so.
 name = "oxidized_python"
 crate-type = ["cdylib", "lib"]
 #+end_src
-** Face recognition package
-*** Preparations
+
+
+* Face recognition package
+** Preparations
 - Download model files from https://github.com/deepinsight/insightface/tree/master/python-package#model-zoo
 - Unzip into ~assets/models/~ directory (onnx files)
 
-*** Testing Python integration
-This small snippet is enough to run the face-recognition implementation in Rust
-via the Python interpreter.
+** Testing Python integration
+This small snippet is enough to run the face-recognition implementation in Rust via the Python interpreter.
+
 #+begin_src sh :session pyo3 :exports none
 export VIRTUAL_ENV_DISABLE_PROMPT=1
 . venv/bin/activate
 #+end_src
 
 #+RESULTS:
+
+#+begin_src emacs-lisp :exports none
+(setq org-babel-python-command "./venv/bin/python")
+#+end_src
+
+#+RESULTS:
+: ./venv/bin/python
 
 #+begin_src python :session pyo3 :results output :exports both
 import cv2
@@ -187,7 +186,9 @@ import oxidized_python
 
 
 tom = cv2.imread("assets/tom.png", cv2.IMREAD_COLOR).astype(np.uint8)
+tom = cv2.cvtColor(tom, cv2.COLOR_BGR2RGB)
 hanks = cv2.imread("assets/hanks.jpg", cv2.IMREAD_COLOR).astype(np.uint8)
+hanks = cv2.cvtColor(hanks, cv2.COLOR_BGR2RGB)
 
 environment = oxidized_python.PyAgentEnvironment()
 agent = environment.create_agent()
@@ -198,30 +199,31 @@ print(similarity)
 #+end_src
 
 #+RESULTS:
-: Rgba([18, 18, 18, 255])
+: 0.7528126835823059
 
-*** Testing Rust usage
-The developed library can also be used by Rust. For this purpose I implemented a
-binary in ~src/main.rs~ that instantiated a face-recognition agent and computes
-the similarity between the two images.
+** Testing Rust usage
+The developed library can also be used by Rust. For this purpose I implemented a binary in ~src/main.rs~ that instantiated a face-recognition agent and computes the similarity between the two images.
 
 To compile the binary it is enough to run the regular ~cargo build~ command:
-#+begin_src sh :session pyo3 :results raw :exports code
+#+begin_src sh :session pyo3 :results output :exports code
 cargo build --bin oxidized_python
 #+end_src
 
 #+RESULTS:
-Finished dev [unoptimized + debuginfo] target(s) in 0.10s
+: Blocking waiting for file lock on build directory
+:    Compiling pyo3-build-config v0.18.2
+:    Compiling pyo3-ffi v0.18.2
+:    Compiling pyo3 v0.18.2
+:    Compiling numpy v0.18.0
+:    Compiling oxidized_python v0.1.0 (/Users/tbszlg/scm/rust/oxidized_python)
+:     Finished dev [unoptimized + debuginfo] target(s) in 6.30s
 
-The binary is implemented such that it accepts two command line arguments - the
-path to two images to calculate face similarity for.
-#+begin_src sh :session pyo3 :results raw
+The binary is implemented such that it accepts two command line arguments - the path to two images to calculate face similarity for.
+#+begin_src sh :session pyo3 :results output :exports both
 ./target/debug/oxidized_python ./assets/tom.png ./assets/hanks.jpg
 #+end_src
 
 #+RESULTS:
-Rgba([18, 18, 18, 255])
-Some(0.040907674)
-Similarity: 0.75250286
-Rgba([18, 18, 18, 255])
-Similarity: 0.75250286
+: Similarity: 0.75250286
+
+As we can see the outcome similarity is the same between the usage of the python wrapper or the direct Rust implementation.
