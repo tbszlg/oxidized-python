@@ -1,0 +1,4 @@
+#+title: Reference python implementation
+
+
+This is a small reference implementation in pure python showcasing how the same face-recognition usage could be implemented.
