@@ -75,7 +75,7 @@ impl Agent {
             .to_rgb8();
         let height = image_resized.height();
         let width = image_resized.width();
-        let image_resized = Array3::from_shape_fn((height as usize, width as usize, 3 as usize), |(i, j, k)| {
+        let image_resized = Array3::from_shape_fn((height as usize, width as usize, 3), |(i, j, k)| {
             image_resized[(j as u32, i as u32)][k]
         })
             .permuted_axes([2, 0, 1]);
