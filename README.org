@@ -157,9 +157,11 @@ crate-type = ["cdylib", "lib"]
 
 
 * Face recognition package
+
 ** Preparations
 - Download model files from https://github.com/deepinsight/insightface/tree/master/python-package#model-zoo
 - Unzip into ~assets/models/~ directory (onnx files)
+
 
 ** Testing Python integration
 This small snippet is enough to run the face-recognition implementation in Rust via the Python interpreter.
@@ -201,6 +203,7 @@ print(similarity)
 #+RESULTS:
 : 0.7528126835823059
 
+
 ** Testing Rust usage
 The developed library can also be used by Rust. For this purpose I implemented a binary in ~src/main.rs~ that instantiated a face-recognition agent and computes the similarity between the two images.
 
@@ -227,3 +230,6 @@ The binary is implemented such that it accepts two command line arguments - the 
 : Similarity: 0.75250286
 
 As we can see the outcome similarity is the same between the usage of the python wrapper or the direct Rust implementation.
+
+
+* TODO Latency comparisons
